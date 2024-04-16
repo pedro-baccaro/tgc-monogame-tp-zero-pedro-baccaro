@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -24,7 +26,7 @@ namespace TGC.MonoGame.TP
         private Model CarModel { get; set; }
         private Matrix CarWorld { get; set; }
         private FollowCamera FollowCamera { get; set; }
-
+        public float CarSpeed = 0f;
 
         /// <summary>
         ///     Constructor del juego.
@@ -78,6 +80,7 @@ namespace TGC.MonoGame.TP
             City = new CityScene(Content);
 
             // La carga de contenido debe ser realizada aca.
+            CarModel = Content.Load<Model>("Models/scene/car");
 
             base.LoadContent();
         }
@@ -97,6 +100,27 @@ namespace TGC.MonoGame.TP
             }
 
             // La logica debe ir aca.
+            if (keyboardState.IsKeyDown(Keys.W) && CarSpeed <= 40f) //Velocidad maxima 40m/s
+            {
+                CarSpeed += 1f;  //Aceleración de 1m/s²
+            }
+
+            if (keyboardState.IsKeyDown(Keys.S) && CarSpeed > 0f)
+            {
+                CarSpeed = Math.Max(0f,CarSpeed-1f); 
+            }
+
+            if (keyboardState.IsKeyDown(Keys.A))
+            {
+                CarWorld = Matrix.CreateFromAxisAngle(CarWorld.Up, 0.05f) * CarWorld;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.D))
+            {
+                CarWorld = Matrix.CreateFromAxisAngle(CarWorld.Up, -0.05f) * CarWorld;
+            }
+
+            CarWorld *= Matrix.CreateTranslation(CarSpeed*CarWorld.Forward);
 
             // Actualizo la camara, enviandole la matriz de mundo del auto.
             FollowCamera.Update(gameTime, CarWorld);
@@ -118,7 +142,8 @@ namespace TGC.MonoGame.TP
             City.Draw(gameTime, FollowCamera.View, FollowCamera.Projection);
 
             // El dibujo del auto debe ir aca.
-
+            CarModel.Draw(CarWorld, FollowCamera.View, FollowCamera.Projection);
+            
             base.Draw(gameTime);
         }
 
